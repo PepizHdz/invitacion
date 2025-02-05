@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Invitación Especial</title>
+  <!-- Vinculamos el CSS externo -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- Pantalla 1: Bienvenida -->
+  <div id="screen1" class="screen active">
+    <h1>Bienvenida Fridis</h1>
+    <p>¿Estás lista para descubrir un secreto muy especial?</p>
+    <button id="startBtn">Empezar</button>
+  </div>
+
+  <!-- Pantalla 2: Desafío de Corazón -->
+  <div id="screen2" class="screen">
+    <h1>Encuentra el Corazón</h1>
+    <p>Haz clic en el corazón correcto para avanzar al siguiente reto.</p>
+    <div id="heartsContainer">
+      <div class="heart" data-correct="false"></div>
+      <div class="heart" data-correct="false"></div>
+      <div class="heart" data-correct="true"></div>
+      <div class="heart" data-correct="false"></div>
+      <div class="heart" data-correct="false"></div>
+    </div>
+    <p id="hint" style="color: #555; margin-top: 20px;">¡Inténtalo!</p>
+  </div>
+
+  <!-- Pantalla 3: Quiz Challenge -->
+  <div id="screen3" class="screen">
+    <h1>Desafío Quiz</h1>
+    <div id="quiz-container">
+      <p id="question"></p>
+      <div id="options"></div>
+      <p id="error-counter">Errores: 0</p>
+    </div>
+  </div>
+
+  <!-- Pantalla 4: Invitación Final -->
+  <div id="screen4" class="screen">
+    <h1>¡Sorpresa!</h1>
+    <p>¡Estás invitada a celebrar el 14 de febrero con el amor de tu vida!</p>
+    <p>Espero que aceptes esta invitación, te amo mucho.</p>
+    <p id="finalErrorCounter">Errores cometidos: 0</p>
+  </div>
+
+  <script>
+    // Referencias a las pantallas
+    const screen1 = document.getElementById('screen1');
+    const screen2 = document.getElementById('screen2');
+    const screen3 = document.getElementById('screen3');
+    const screen4 = document.getElementById('screen4');
+
+    // Elementos de la pantalla de bienvenida y desafío de corazón
+    const startBtn = document.getElementById('startBtn');
+    const hearts = document.querySelectorAll('.heart');
+    const hint = document.getElementById('hint');
+
+    // Elementos del quiz
+    const questionEl = document.getElementById('question');
+    const optionsEl = document.getElementById('options');
+    const errorCounterEl = document.getElementById('error-counter');
+    const finalErrorCounterEl = document.getElementById('finalErrorCounter');
+
+    // Función para mostrar una pantalla y ocultar las demás
+    function showScreen(screen) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      screen.classList.add('active');
+    }
+
+    // Evento del botón de inicio: pasar a la pantalla del desafío de corazón
+    startBtn.addEventListener('click', () => {
+      showScreen(screen2);
+    });
+
+    // Quiz: preguntas, opciones y respuesta correcta
+    const quizQuestions = [
+      {
+        question: "¿Cuál de estos es mi color favorito?",
+        options: ["Rojo", "Negro", "Plata", "Dorado"],
+        correct: "Dorado"
+      },
+      {
+        question: "¿Cuál de los siguientes es mi comida preferida?",
+        options: ["Chilaquiles", "Pizza", "Lasaña", "Milanesas"],
+        correct: "Milanesas"
+      },
+      {
+        question: "¿Cuáles son mis papas favoritas?",
+        options: ["Doritos", "Chetos flaming", "Chips Fuego", "Las 3"],
+        correct: "Chips Fuego"
+      },
+      {
+        question: "¿Qué lugar sueño con visitar?",
+        options: ["Roma", "Nueva York", "Japon", "Canada"],
+        correct: "Nueva York"
+      },
+      {
+        question: "¿Cuál es mi película favorita?",
+        options: ["Interstellar", "SuperCool", "Volver al futuro", "Red Social"],
+        correct: "Volver al futuro"
+      }
+    ];
+    let currentQuestionIndex = 0;
+    let errorCount = 0;
+
+    // Función para mostrar la pregunta actual del quiz
+    function showQuestion() {
+      // Limpiar opciones anteriores
+      optionsEl.innerHTML = "";
+      // Obtener la pregunta actual
+      const currentQuestion = quizQuestions[currentQuestionIndex];
+      questionEl.textContent = currentQuestion.question;
+      
+      // Crear botones para cada opción
+      currentQuestion.options.forEach(option => {
+        const btn = document.createElement("button");
+        btn.textContent = option;
+        btn.style.margin = "5px";
+        btn.addEventListener("click", () => {
+          if (option === currentQuestion.correct) {
+            // Respuesta correcta: pasar a la siguiente pregunta
+            currentQuestionIndex++;
+            if (currentQuestionIndex < quizQuestions.length) {
+              showQuestion();
+            } else {
+              // Quiz terminado: actualizar contador final y mostrar invitación final
+              finalErrorCounterEl.textContent = "Errores cometidos: " + errorCount;
+              showScreen(screen4);
+            }
+          } else {
+            // Respuesta incorrecta: incrementar contador de errores y permitir reintentar
+            errorCount++;
+            errorCounterEl.textContent = "Errores: " + errorCount;
+            // Efecto visual para indicar error
+            btn.style.backgroundColor = "#ffcccc";
+            setTimeout(() => {
+              btn.style.backgroundColor = "";
+            }, 500);
+          }
+        });
+        optionsEl.appendChild(btn);
+      });
+    }
+
+    // Evento para cada corazón en el desafío
+    hearts.forEach(heart => {
+      heart.addEventListener('click', () => {
+        const isCorrect = heart.getAttribute('data-correct') === 'true';
+        if (isCorrect) {
+          // Si se selecciona el corazón correcto, inicia el quiz
+          showScreen(screen3);
+          // Reiniciar variables del quiz
+          currentQuestionIndex = 0;
+          errorCount = 0;
+          errorCounterEl.textContent = "Errores: 0";
+          showQuestion();
+        } else {
+          // Si es incorrecto, dar feedback
+          hint.textContent = 'Ese no es el correcto, ¡sigue intentando!';
+          heart.style.transform = 'rotate(10deg)';
+          setTimeout(() => {
+            heart.style.transform = 'rotate(0deg)';
+          }, 300);
+        }
+      });
+    });
+  </script>
+</body>
+</html>
